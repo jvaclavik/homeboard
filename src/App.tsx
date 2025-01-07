@@ -1,310 +1,72 @@
 import React, {useEffect, useState} from 'react';
 import styled from '@emotion/styled';
-import './App.css';
-import {format} from "date-fns";
+import {differenceInMinutes, format} from "date-fns";
+import {css, Global} from "@emotion/react";
+import {DepartureItem} from "./types";
+import {getLocalStorageItem, setLocalStorageItem} from "./storage";
+import {Arrow} from "./Arrow";
 
-// const mockData = [
-//   [
-//     {
-//       "departure": {
-//         "timestamp_scheduled": "2025-01-06T17:38:00+01:00",
-//         "timestamp_predicted": "2025-01-06T17:40:00+01:00",
-//         "delay_seconds": 120,
-//         "minutes": 3
-//       },
-//       "stop": {
-//         "id": "U362Z1P",
-//         "sequence": 10,
-//         "platform_code": "A"
-//       },
-//       "route": {
-//         "type": "tram",
-//         "short_name": "22"
-//       },
-//       "trip": {
-//         "id": "22_23810_241223",
-//         "headsign": "Zahradní Město",
-//         "is_canceled": false
-//       },
-//       "vehicle": {
-//         "id": "service-0-8292",
-//         "is_wheelchair_accessible": true,
-//         "is_air_conditioned": false,
-//         "has_charger": false
-//       }
-//     },
-//     {
-//       "departure": {
-//         "timestamp_scheduled": "2025-01-06T17:42:00+01:00",
-//         "timestamp_predicted": "2025-01-06T17:42:52+01:00",
-//         "delay_seconds": 52,
-//         "minutes": 6
-//       },
-//       "stop": {
-//         "id": "U362Z1P",
-//         "sequence": 10,
-//         "platform_code": "A"
-//       },
-//       "route": {
-//         "type": "tram",
-//         "short_name": "25"
-//       },
-//       "trip": {
-//         "id": "25_13058_241125",
-//         "headsign": "Výstaviště",
-//         "is_canceled": false
-//       },
-//       "vehicle": {
-//         "id": "service-0-8335",
-//         "is_wheelchair_accessible": false,
-//         "is_air_conditioned": false,
-//         "has_charger": false
-//       }
-//     },
-//     {
-//       "departure": {
-//         "timestamp_scheduled": "2025-01-06T17:43:00+01:00",
-//         "timestamp_predicted": "2025-01-06T17:43:00+01:00",
-//         "delay_seconds": 0,
-//         "minutes": 6
-//       },
-//       "stop": {
-//         "id": "U362Z1P",
-//         "sequence": 7,
-//         "platform_code": "A"
-//       },
-//       "route": {
-//         "type": "tram",
-//         "short_name": "22"
-//       },
-//       "trip": {
-//         "id": "22_23899_241223",
-//         "headsign": "Nádraží Hostivař",
-//         "is_canceled": false
-//       },
-//       "vehicle": {
-//         "id": "service-0-9305",
-//         "is_wheelchair_accessible": true,
-//         "is_air_conditioned": false,
-//         "has_charger": false
-//       }
-//     },
-//     {
-//       "departure": {
-//         "timestamp_scheduled": "2025-01-06T17:48:00+01:00",
-//         "timestamp_predicted": "2025-01-06T17:48:00+01:00",
-//         "delay_seconds": 0,
-//         "minutes": 11
-//       },
-//       "stop": {
-//         "id": "U362Z1P",
-//         "sequence": 10,
-//         "platform_code": "A"
-//       },
-//       "route": {
-//         "type": "tram",
-//         "short_name": "22"
-//       },
-//       "trip": {
-//         "id": "22_23815_250106",
-//         "headsign": "Zahradní Město",
-//         "is_canceled": false
-//       },
-//       "vehicle": {
-//         "id": "service-0-8554",
-//         "is_wheelchair_accessible": false,
-//         "is_air_conditioned": false,
-//         "has_charger": false
-//       }
-//     },
-//     {
-//       "departure": {
-//         "timestamp_scheduled": "2025-01-06T17:52:00+01:00",
-//         "timestamp_predicted": "2025-01-06T17:52:00+01:00",
-//         "delay_seconds": 0,
-//         "minutes": 15
-//       },
-//       "stop": {
-//         "id": "U362Z1P",
-//         "sequence": 10,
-//         "platform_code": "A"
-//       },
-//       "route": {
-//         "type": "tram",
-//         "short_name": "25"
-//       },
-//       "trip": {
-//         "id": "25_13324_241223",
-//         "headsign": "Výstaviště",
-//         "is_canceled": false
-//       },
-//       "vehicle": {
-//         "id": "service-0-9156",
-//         "is_wheelchair_accessible": true,
-//         "is_air_conditioned": false,
-//         "has_charger": false
-//       }
-//     },
-//     {
-//       "departure": {
-//         "timestamp_scheduled": "2025-01-06T17:53:00+01:00",
-//         "timestamp_predicted": "2025-01-06T17:53:00+01:00",
-//         "delay_seconds": 0,
-//         "minutes": 16
-//       },
-//       "stop": {
-//         "id": "U362Z1P",
-//         "sequence": 7,
-//         "platform_code": "A"
-//       },
-//       "route": {
-//         "type": "tram",
-//         "short_name": "22"
-//       },
-//       "trip": {
-//         "id": "22_21551_241223",
-//         "headsign": "Nádraží Hostivař",
-//         "is_canceled": false
-//       },
-//       "vehicle": {
-//         "id": "service-0-9311",
-//         "is_wheelchair_accessible": true,
-//         "is_air_conditioned": false,
-//         "has_charger": false
-//       }
-//     },
-//     {
-//       "departure": {
-//         "timestamp_scheduled": "2025-01-06T17:58:00+01:00",
-//         "timestamp_predicted": "2025-01-06T17:58:00+01:00",
-//         "delay_seconds": 0,
-//         "minutes": 21
-//       },
-//       "stop": {
-//         "id": "U362Z1P",
-//         "sequence": 10,
-//         "platform_code": "A"
-//       },
-//       "route": {
-//         "type": "tram",
-//         "short_name": "22"
-//       },
-//       "trip": {
-//         "id": "22_8819_250106",
-//         "headsign": "Zahradní Město",
-//         "is_canceled": false
-//       },
-//       "vehicle": {
-//         "id": "service-0-9388",
-//         "is_wheelchair_accessible": true,
-//         "is_air_conditioned": true,
-//         "has_charger": false
-//       }
-//     },
-//     {
-//       "departure": {
-//         "timestamp_scheduled": "2025-01-06T18:02:00+01:00",
-//         "timestamp_predicted": "2025-01-06T18:02:00+01:00",
-//         "delay_seconds": 0,
-//         "minutes": 25
-//       },
-//       "stop": {
-//         "id": "U362Z1P",
-//         "sequence": 10,
-//         "platform_code": "A"
-//       },
-//       "route": {
-//         "type": "tram",
-//         "short_name": "25"
-//       },
-//       "trip": {
-//         "id": "25_13336_241223",
-//         "headsign": "Výstaviště",
-//         "is_canceled": false
-//       },
-//       "vehicle": {
-//         "id": "service-0-9124",
-//         "is_wheelchair_accessible": true,
-//         "is_air_conditioned": false,
-//         "has_charger": false
-//       }
-//     },
-//     {
-//       "departure": {
-//         "timestamp_scheduled": "2025-01-06T18:03:00+01:00",
-//         "timestamp_predicted": "2025-01-06T18:03:00+01:00",
-//         "delay_seconds": 0,
-//         "minutes": 26
-//       },
-//       "stop": {
-//         "id": "U362Z1P",
-//         "sequence": 7,
-//         "platform_code": "A"
-//       },
-//       "route": {
-//         "type": "tram",
-//         "short_name": "22"
-//       },
-//       "trip": {
-//         "id": "22_15571_250106",
-//         "headsign": "Nádraží Hostivař",
-//         "is_canceled": false
-//       },
-//       "vehicle": {
-//         "id": "service-0-8556",
-//         "is_wheelchair_accessible": false,
-//         "is_air_conditioned": false,
-//         "has_charger": false
-//       }
-//     },
-//     {
-//       "departure": {
-//         "timestamp_scheduled": "2025-01-06T18:05:00+01:00",
-//         "timestamp_predicted": "2025-01-06T18:05:00+01:00",
-//         "delay_seconds": 0,
-//         "minutes": 28
-//       },
-//       "stop": {
-//         "id": "U362Z1P",
-//         "sequence": 2,
-//         "platform_code": "A"
-//       },
-//       "route": {
-//         "type": "tram",
-//         "short_name": "23"
-//       },
-//       "trip": {
-//         "id": "23_3375_241223",
-//         "headsign": "Zvonařka",
-//         "is_canceled": false
-//       },
-//       "vehicle": {
-//         "id": "service-0-6004",
-//         "is_wheelchair_accessible": false,
-//         "is_air_conditioned": false,
-//         "has_charger": false
-//       }
-//     }
-//   ]
-// ]
+const FIRST_CALL_TIME = 6
+const LAST_CALL_TIME = 3
+const RELOAD_INTERVAL = 60
 
-const Row = styled.span`
+const globalStyle = (theme) => css`
+  html,
+  body,
+  #__next {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    border: 0;
+    font-family: 'Helvatica', sans-serif;
+    background-color: black;
+    color: silver;
+
+  }
+
+`;
+export const GlobalStyle = () => <Global styles={globalStyle} />;
+
+const Row = styled.span<{$timeToGo:number}>`
     display: flex;
-    flex-direction: row;
-  gap: 10px;
+    flex-direction: column;
+    justify-content: center;
+  gap: 4px;
   align-items: center;
+  margin-bottom: 30px;
+  opacity: ${({$timeToGo})=>0.3+6*1/($timeToGo+1)};
+  
 `
 
-const TransportName = styled.span`
-  font-size: 30px;
+const TransportName = styled.div<{$timeToGo:number}>`
+  font-size: ${({$timeToGo})=>10+300*2/($timeToGo+1)}px;
   font-weight: bold;
+  border: solid 4px #333;
+  background: #121212;
+  border-radius: ${({$timeToGo})=>10+100*1/($timeToGo+1)}px;
+  position: relative;
+  cursor: pointer;
+  
+  padding: 4px 12px;
+  margin-top: 12px;
 `
-const Time = styled.span`
-
+const TimeToGo = styled.div`
+  font-size: 20px;
+`
+const Time = styled.div`
+    color: #555;
+  font-size: 14px;
+`
+const ArrowContainer = styled.div`
+  position: absolute;
+  top: 0;
+  right: -50px
 `
 
 function App() {
-  const [data, setData] = useState([])
+  const [data, setData] = useState<DepartureItem[]>([])
+
+  const [markedItem, setMarkedItem] = useState<string | null>(getLocalStorageItem('markedItem') || null)
   const fetchDepartureBoards = async () => {
     const url = 'https://api.golemio.cz/v2/public/departureboards?stopIds={"0":["U362Z1P"]}&limit=10';
 
@@ -329,19 +91,47 @@ function App() {
   useEffect(() => {
     fetchDepartureBoards();
 
-
-    setTimeout(()=>{
-        window.location.reload();
-    },60000)
+    setInterval(()=>{
+      fetchDepartureBoards();
+    },RELOAD_INTERVAL*1000)
   }, []);
 
 if(data.length === 0) return null
+const dateNow = new Date()
+
+  const handleMarkItem = (id) =>{
+    setLocalStorageItem("markedItem",id)
+    setMarkedItem(id)
+  }
+
+
 
   return (
     <>
-      <div>Last reload: {format(new Date(), "H:mm")}</div>
-      {data.map((item,index)=> <Row key={`row-${index}`}> <TransportName>{item.route.short_name}</TransportName><Time>{format(new Date(item.departure.timestamp_predicted), "H:mm")
-        }</Time></Row>)}
+      <GlobalStyle/>
+      {/*<div>Last reload: {format(dateNow, "H:mm")}</div>*/}
+      {data.map((item,index)=> {
+        const predictedDepartureDate = new Date(item.departure.timestamp_predicted)
+        const timeToGo = differenceInMinutes(new Date(item.departure.timestamp_predicted), dateNow)
+        const isMarked = markedItem === item.trip.id
+        if(timeToGo < LAST_CALL_TIME-1) return null
+
+        if(isMarked && timeToGo === FIRST_CALL_TIME){
+          new Audio("./bell.mp3").play()
+        }
+        if(isMarked && timeToGo === LAST_CALL_TIME){
+          new Audio("./bell.mp3").play()
+          setTimeout(()=>{
+            new Audio("./bell.mp3").play()
+          },300)
+        }
+
+        return <Row $timeToGo={timeToGo} key={`row-${index}`} onClick={()=>handleMarkItem(item.trip.id)}>
+
+          <TransportName $timeToGo={timeToGo}>{item.route.short_name}{isMarked && <ArrowContainer><Arrow /></ArrowContainer>}</TransportName>
+          <TimeToGo><strong>{timeToGo}</strong> min</TimeToGo> <Time>{format(predictedDepartureDate, "H:mm")}</Time>
+        </Row>
+      })}
     </>
   );
 }
